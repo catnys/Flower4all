@@ -56,3 +56,6 @@ def load_datasets():
 
 
 trainloaders, valloaders, testloader = load_datasets()
+
+
+
