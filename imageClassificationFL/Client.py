@@ -155,6 +155,16 @@ class FlowerClient(fl.client.NumPyClient):
         return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
 
 
+# Function to create a Flower client on demand
+def client_fn(cid: str) -> FlowerClient:
+    trainloader = trainloaders[int(cid)]
+    valloader = valloaders[int(cid)]
+    return FlowerClient(trainloader, valloader)
 
+
+# Entry point for running the client
+if __name__ == "__main__":
+    # Start Flower client
+    fl.client.start_numpy_client("0.0.0.0:8080", client=client_fn)
 
 
