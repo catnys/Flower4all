@@ -35,7 +35,7 @@
 6. [References](#references)
 
 ---
-
+<!--
 ## :pushpin: **Checklist**
 - [x] 📦 Getting Started
 - [x] 👩🏻‍💻 What is Federated Learning?
@@ -43,20 +43,11 @@
 - [x] 🔨 Contribution
 - [x] 🧾 License
 - [x] 📚 References
-
-
+-->
 
 # Flower4all - Flower Framework Tutorial Series
 
 Welcome to Flower4all, a tutorial series repository dedicated to exploring the Flower framework for federated learning. This repository contains several Python flower projects utilizing libraries such as Pandas, NumPy, and leveraging one of the flower datasets, MNIST. 
-
-## Table of Contents
-- [Getting Started](#getting-started)
-- [What is Federated Learning?](#what-is-federated-learning)
-- [What is Flower Framework?](#what-is-flower-framework)
-- [Contribution](#contribution)
-- [License](#license)
-- [References](#references)
 
 ## Getting Started
 To get started with Flower4all tutorials, navigate to the project of your interest within this repository. Each tutorial typically includes at least one `client.py` and one `server.py`. 
