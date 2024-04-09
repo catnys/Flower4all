@@ -97,5 +97,5 @@ class FlowerCifarClient(fl.client.NumPyClient):
 
 
 
-fl.client.start_client(server_address="[::]:8080", client=CifarClient().to_client())
+fl.client.start_client(server_address="[::]:8080", client=FlowerCifarClient().to_client())
 
