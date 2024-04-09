@@ -22,3 +22,17 @@ def load_data():
     testloader = DataLoader(testset, batch_size=32)
     num_examples = {"trainset" : len(trainset), "testset" : len(testset)}
     return trainloader, testloader, num_examples
+
+def train(net, trainloader, epochs):
+    """Train the network on the training set."""
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    for _ in range(epochs):
+        for images, labels in trainloader:
+            images, labels = images.to(DEVICE), labels.to(DEVICE)
+            optimizer.zero_grad()
+            loss = criterion(net(images), labels)
+            loss.backward()
+            optimizer.step()
+
+
