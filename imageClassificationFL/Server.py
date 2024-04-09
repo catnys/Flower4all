@@ -1,17 +1,20 @@
 import flwr as fl
 
+NUM_CLIENTS = 10  # Number of clients participating in federated learning
+client_resources = {"cpu": 1}  # Define resources for each client, for example
 
-def client_fn(cid: str) -> FlowerClient:
-    """Create a Flower client representing a single organization."""
+# Define metric aggregation function
+def weighted_average(metrics: List[Tuple[int, fl.common.Metrics]]) -> fl.common.Metrics:
+    accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
+    examples = [num_examples for num_examples, _ in metrics]
+    return {"accuracy": sum(accuracies) / sum(examples)}
 
-    # Load model
-    net = Net().to(DEVICE)
-
-    # Load data (CIFAR-10)
-    # Note: each client gets a different trainloader/valloader, so each client
-    # will train and evaluate on their own unique data
-    trainloader = trainloaders[int(cid)]
-    valloader = valloaders[int(cid)]
-
-    # Create a  single Flower client representing a single organization
-    return FlowerClient(net, trainloader, valloader).to_client()
+# Create FedAvg strategy
+strategy = fl.server.strategy.FedAvg(
+    fraction_fit=1.0,
+    fraction_evaluate=0.5,
+    min_fit_clients=10,
+    min_evaluate_clients=5,
+    min_available_clients=10,
+    evaluate_metrics_aggregation_fn=weighted_average,
+)
