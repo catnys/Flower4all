@@ -1,4 +1,8 @@
+from typing import Tuple, List
+
 import flwr as fl
+
+from Client import client_fn
 
 NUM_CLIENTS = 10  # Number of clients participating in federated learning
 client_resources = {"cpu": 1}  # Define resources for each client, for example
