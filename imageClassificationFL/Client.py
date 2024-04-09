@@ -1,13 +1,11 @@
 from collections import OrderedDict
 from typing import List, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from datasets.utils.logging import disable_progress_bar
 from torch.utils.data import DataLoader
 
 import flwr as fl
@@ -18,19 +16,17 @@ DEVICE = torch.device("cpu")  # Try "cuda" to train on GPU
 print(
     f"Training on {DEVICE} using PyTorch {torch.__version__} and Flower {fl.__version__}"
 )
-disable_progress_bar()
 
 NUM_CLIENTS = 10
 BATCH_SIZE = 32
 
 
 def load_datasets():
+    from flwr_datasets import FederatedDataset
+
     fds = FederatedDataset(dataset="cifar10", partitioners={"train": NUM_CLIENTS})
 
     def apply_transforms(batch):
-        # Instead of passing transforms to CIFAR10(..., transform=transform)
-        # we will use this function to dataset.with_transform(apply_transforms)
-        # The transforms object is exactly the same
         transform = transforms.Compose(
             [
                 transforms.ToTensor(),
@@ -40,7 +36,6 @@ def load_datasets():
         batch["img"] = [transform(img) for img in batch["img"]]
         return batch
 
-    # Create train/val for each partition and wrap it into DataLoader
     trainloaders = []
     valloaders = []
     for partition_id in range(NUM_CLIENTS):
@@ -55,27 +50,6 @@ def load_datasets():
 
 
 trainloaders, valloaders, testloader = load_datasets()
-
-batch = next(iter(trainloaders[0]))
-images, labels = batch["img"], batch["label"]
-# Reshape and convert images to a NumPy array
-# matplotlib requires images with the shape (height, width, 3)
-images = images.permute(0, 2, 3, 1).numpy()
-# Denormalize
-images = images / 2 + 0.5
-
-# Create a figure and a grid of subplots
-fig, axs = plt.subplots(4, 8, figsize=(12, 6))
-
-# Loop over the images and plot them
-for i, ax in enumerate(axs.flat):
-    ax.imshow(images[i])
-    ax.set_title(trainloaders[0].dataset.features["label"].int2str([labels[i]])[0])
-    ax.axis("off")
-
-# Show the plot
-fig.tight_layout()
-plt.show()
 
 
 class Net(nn.Module):
@@ -99,7 +73,6 @@ class Net(nn.Module):
 
 
 def train(net, trainloader, epochs: int, verbose=False):
-    """Train the network on the training set."""
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters())
     net.train()
@@ -123,7 +96,6 @@ def train(net, trainloader, epochs: int, verbose=False):
 
 
 def test(net, testloader):
-    """Evaluate the network on the entire test set."""
     criterion = torch.nn.CrossEntropyLoss()
     correct, total, loss = 0, 0, 0.0
     net.eval()
@@ -151,3 +123,14 @@ for epoch in range(5):
 
 loss, accuracy = test(net, testloader)
 print(f"Final test set performance:\n\tloss {loss}\n\taccuracy {accuracy}")
+
+
+def set_parameters(net, parameters: List[np.ndarray]):
+    params_dict = zip(net.state_dict().keys(), parameters)
+    state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
+    net.load_state_dict(state_dict, strict=True)
+
+
+def get_parameters(net) -> List[np.ndarray]:
+    return [val.cpu().numpy() for _, val in net.state_dict().items()]
+
